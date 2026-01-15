@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MDP Visualization: Value & Policy Iteration</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>MDP: Value & Policy Iteration</h1>
+    
+    <div class="dashboard">
+        <div class="controls">
+            <div class="control-group">
+                <label>Algorithm</label>
+                <select id="algorithm" onchange="handleAlgoChange()">
+                    <option value="value">Value Iteration</option>
+                    <option value="policy">Policy Iteration</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label>Gamma (γ): <span id="gamma-val">0.9</span></label>
+                <input type="range" id="gamma" min="0" max="1" step="0.05" value="0.9" 
+                       oninput="document.getElementById('gamma-val').innerText = this.value">
+            </div>
+
+            <button class="step-btn" onclick="runStep()">Step Iteration</button>
+            <button class="reset-vals-btn" onclick="resetValues()">Reset Values (Keep Map)</button>
+            <button class="reset-btn" onclick="resetEnvironment()">New Map (Reset Env)</button>
+            
+            <div id="stats">
+                <div>Iterations: <span id="iter-count">0</span></div>
+                <div>Delta (Δ): <span id="delta-val">0.000000</span></div>
+                <div id="convergence-note" style="display:none; color:#2ecc71; font-weight:bold; margin-top:10px;">
+                    Optimal Policy Reached!
+                </div>
+            </div>
+        </div>
+
+        <div id="grid-world" class="grid-container"></div>
+    </div>
+
+    <script>
+        let iteration = 0;
+
+        window.onload = async () => {
+            const res = await fetch('/get_state');
+            updateUI(await res.json());
+        };
+
+        async function handleAlgoChange() {
+            await fetch('/clear_values', { method: 'POST' });
+            iteration = 0;
+            resetUIState();
+            const res = await fetch('/get_state');
+            updateUI(await res.json());
+        }
+
+        async function resetValues() {
+            await fetch('/clear_values', { method: 'POST' });
+            iteration = 0;
+            resetUIState();
+            const res = await fetch('/get_state');
+            updateUI(await res.json());
+        }
+
+        async function resetEnvironment() {
+            await fetch('/reset_env', { method: 'POST' });
+            iteration = 0;
+            resetUIState();
+            const res = await fetch('/get_state');
+            updateUI(await res.json());
+        }
+
+        function resetUIState() {
+            const btn = document.querySelector('.step-btn');
+            btn.disabled = false; btn.style.opacity = '1';
+            btn.innerText = "Step Iteration";
+            document.getElementById('convergence-note').style.display = 'none';
+        }
+
+        async function runStep() {
+            const config = { 
+                gamma: document.getElementById('gamma').value, 
+                algorithm: document.getElementById('algorithm').value 
+            };
+            const res = await fetch('/step', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
+            const data = await res.json();
+            iteration++;
+            updateUI(data);
+
+            if (data.delta < 0.0001) {
+                document.getElementById('convergence-note').style.display = 'block';
+                const btn = document.querySelector('.step-btn');
+                btn.disabled = true; btn.style.opacity = '0.5';
+                btn.innerText = "Converged";
+            }
+        }
+
+        function updateUI(data) {
+            const grid = document.getElementById('grid-world'); 
+            grid.innerHTML = '';
+            document.getElementById('delta-val').innerText = data.delta.toFixed(6);
+            document.getElementById('iter-count').innerText = iteration;
+            
+            const arrows = { 'UP': '↑', 'DOWN': '↓', 'LEFT': '←', 'RIGHT': '→' };
+
+            data.values.forEach((row, r) => {
+                row.forEach((val, c) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    const dir = data.policy[r][c];
+
+                    let rewardDisplay = val.toFixed(2);
+                    const isGoal = (r === 0 && c === 5);
+                    const isTrap = (r === 1 && c === 5);
+                    const isObstacle = (dir === 'OBS');
+
+                    if (isGoal) {
+                        cell.classList.add('goal');
+                        rewardDisplay = "+10.00";
+                    } else if (isTrap) {
+                        cell.classList.add('trap');
+                        rewardDisplay = "-10.00";
+                    } else if (isObstacle) {
+                        cell.classList.add('obstacle');
+                    }
+                    
+                    // HEATMAP LOGIC REMOVED HERE
+                    // Cells will now default to white via CSS
+
+                    cell.innerHTML = `
+                        <div class="value-label">${isObstacle ? '' : rewardDisplay}</div>
+                        <div class="arrow">${(isObstacle || isGoal || isTrap) ? '' : (arrows[dir] || '')}</div>
+                    `;
+                    grid.appendChild(cell);
+                });
+            });
+        }
+    </script>
+</body>
+</html>

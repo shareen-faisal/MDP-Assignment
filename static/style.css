@@ -1,0 +1,167 @@
+:root {
+    --goal: #2ecc71;
+    --trap: #e74c3c;
+    --blue: #3498db;
+    --obs-dark-grey: #7f8c8d;
+    
+    /* THEME COLORS */
+    --primary-green: #2ecc71; /* Light green for buttons and slider */
+    --app-bg: #dfe6e9;       /* Main page background */
+    --grid-bg: #2c3e50;      /* Grid lines/background */
+    --cell-bg: #ffffff;      /* Individual cell background */
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--app-bg);
+    display: flex; 
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+h1 {
+    margin-bottom: 25px;
+    font-size: 1.8rem;
+    color: #2d3436;
+    font-weight: bold;
+}
+
+.dashboard {
+    display: flex;
+    flex-direction: column; /* Stacks vertically on mobile */
+    gap: 30px;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 1000px;
+}
+
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+select {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    background: white;
+    font-size: 1rem;
+}
+
+/* SLIDER STYLING */
+input[type="range"] {
+    width: 100%;
+    accent-color: var(--primary-green); /* Light green slider */
+    cursor: pointer;
+}
+
+/* BUTTON STYLING */
+button {
+    padding: 15px;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: white;
+    transition: background 0.3s ease, transform 0.1s;
+}
+
+button:active { transform: scale(0.98); }
+
+.step-btn { 
+    background: var(--primary-green); /* Light green button */
+}
+
+.step-btn:hover { background: #27ae60; }
+
+.reset-btn { 
+    background: #636e72; 
+}
+
+.reset-vals-btn {
+    background: var(--blue);
+}
+.reset-vals-btn:hover { background: #2980b9; }
+
+#stats {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #555;
+    line-height: 1.6;
+}
+
+/* GRID WORLD STYLING */
+.grid-container {
+    display: grid;
+    /* Change repeat(4, 1fr) to repeat(6, 1fr) */
+    grid-template-columns: repeat(6, 1fr); 
+    gap: 8px;
+    background: var(--grid-bg);
+    padding: 8px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 600px; /* Increased max-width for the larger 6x6 grid */
+    margin: 0 auto;
+}
+
+.cell {
+    aspect-ratio: 1 / 1;
+    background: var(--cell-bg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+}
+
+.value-label { font-size: clamp(10px, 2.5vw, 14px); font-weight: bold; color: #636e72; }
+.arrow { font-size: clamp(20px, 5vw, 32px); color: #2d3436; }
+
+/* SPECIAL STATES */
+.goal { background-color: var(--goal) !important; color: white; }
+.trap { background-color: var(--trap) !important; color: white; }
+.obstacle { background-color: var(--obs-dark-grey) !important; }
+
+/* Hide specific elements in obstacles/terminals */
+.obstacle .value-label, .obstacle .arrow, .goal .arrow, .trap .arrow { display: none !important; }
+.goal .value-label, .trap .value-label { color: white; }
+
+/* DESKTOP RESPONSIVENESS */
+@media (min-width: 850px) {
+    .dashboard {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+    .controls {
+        width: 320px;
+        min-width: 320px;
+    }
+    .grid-container {
+        margin: 0;
+        flex-grow: 1;
+    }
+}
